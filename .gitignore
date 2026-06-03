@@ -1,0 +1,25 @@
+# 의존성
+node_modules/
+
+# 빌드 결과물
+build/
+
+# 환경변수 (중요! API 키 등 노출 방지)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 로그
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 에디터
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

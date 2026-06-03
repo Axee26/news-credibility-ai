@@ -1,0 +1,30 @@
+{
+  "name": "news-credibility-platform",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0",
+    "react-scripts": "5.0.1",
+    "axios": "^1.6.7",
+    "recharts": "^2.12.0",
+    "framer-motion": "^11.0.0",
+    "react-circular-progressbar": "^2.1.0",
+    "react-toastify": "^10.0.4",
+    "react-helmet-async": "^2.0.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": ["react-app"]
+  },
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}
