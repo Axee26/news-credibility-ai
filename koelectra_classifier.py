@@ -246,7 +246,7 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1 and sys.argv[1] == "train":
         # Mode entraînement: python koelectra_classifier.py train
-        DATA_PATH = r"C:\Users\LG\Downloads\01-1.정식개방데이터-20260612T103437Z-3-002\01-1.정식개방데이터\Training\02.라벨링데이터"
+        DATA_PATH = r"C:\Users\LG\Downloads\7 zip files de 146 news 01-1.정식개방데이터-20260612T103437Z-3-002\01-1.정식개방데이터\Training\02.라벨링데이터"
         train_model(DATA_PATH)
     else:
         # Mode test: python koelectra_classifier.py
