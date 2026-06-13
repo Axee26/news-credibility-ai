@@ -97,50 +97,62 @@ class ClickbaitDataset(Dataset):
         return item
 
 
-def _load_data_from_folder(folder_path: str):
+def _load_data_from_folder(folder_path: str, max_per_class: int = 10000):
     """
-    Parcourt récursivement folder_path, lit chaque JSON AI Hub
-    et extrait (newsTitle + newsContent, clickbaitClass).
-    Label: 1 = 낚시성 (clickbait), 0 = 일반 (non-clickbait)
+    Parcourt récursivement folder_path, lit chaque JSON AI Hub.
+    Label basé sur le nom du dossier parent :
+    - "cb" ou contient "CLICKBAIT" → label 1
+    - "ncb" ou contient "NONCLICKBAIT" ou "NON" → label 0
+    max_per_class: limite par classe pour entraînement CPU
     """
     texts, labels = [], []
+    count = {0: 0, 1: 0}
     skipped = 0
 
     for root, dirs, files in os.walk(folder_path):
+        # Déterminer le label depuis le nom du dossier parent
+        parent = os.path.basename(root).upper()
+        if "NCB" in parent or "NON" in parent or "NONCLICKBAIT" in parent:
+            folder_label = 0
+        elif "CB" in parent or "CLICKBAIT" in parent:
+            folder_label = 1
+        else:
+            continue  # dossier non reconnu, on skip
+
+        # Vérifier si la limite par classe est atteinte
+        if count[folder_label] >= max_per_class:
+            continue
+
         for fname in files:
             if not fname.endswith(".json"):
                 continue
+            if count[folder_label] >= max_per_class:
+                break
             fpath = os.path.join(root, fname)
             try:
                 with open(fpath, "r", encoding="utf-8") as f:
                     data = json.load(f)
 
                 src = data.get("sourceDataInfo", {})
-                lbl = data.get("labeledDataInfo", {})
-
                 title = src.get("newsTitle", "")
                 content = src.get("newsContent", "")
-                label = lbl.get("clickbaitClass", None)
 
-                if label not in (0, 1):
-                    skipped += 1
-                    continue
-
-                # Titre + début du contenu (le titre est crucial pour le clickbait)
                 text = f"{title} [SEP] {content[:400]}"
                 texts.append(text)
-                labels.append(int(label))
+                labels.append(folder_label)
+                count[folder_label] += 1
 
             except Exception:
                 skipped += 1
                 continue
 
-    print(f"[Data] Loaded: {len(texts)} samples | Skipped: {skipped}")
+    print(f"[Data] Loaded: {len(texts)} samples (Clickbait: {count[1]}, NonClickbait: {count[0]}) | Skipped: {skipped}")
     return texts, labels
 
 
 def train_model(data_path: str,
                 model_save_path: str = FINETUNED_PATH,
+                max_per_class: int = 10000,
                 epochs: int = 3,
                 batch_size: int = 16,
                 learning_rate: float = 2e-5) -> float:
@@ -164,7 +176,7 @@ def train_model(data_path: str,
 
     # 1. Charger les données
     print("[Train] Loading data...")
-    texts, labels = _load_data_from_folder(data_path)
+    texts, labels = _load_data_from_folder(data_path, max_per_class=max_per_class)
     if len(texts) == 0:
         raise ValueError(f"Aucun fichier JSON valide trouvé dans {data_path}")
 
@@ -246,8 +258,8 @@ if __name__ == "__main__":
 
     if len(sys.argv) > 1 and sys.argv[1] == "train":
         # Mode entraînement: python koelectra_classifier.py train
-        DATA_PATH = r"C:\Users\LG\Downloads\7 zip files de 146 news 01-1.정식개방데이터-20260612T103437Z-3-002\01-1.정식개방데이터\Training\02.라벨링데이터"
-        train_model(DATA_PATH)
+        DATA_PATH = r"C:\dataset"
+        train_model(DATA_PATH, max_per_class=10000)
     else:
         # Mode test: python koelectra_classifier.py
         test_text = "정부가 오늘 새로운 경제 정책을 발표했습니다."
