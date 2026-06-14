@@ -16,6 +16,7 @@ from pydantic import BaseModel
 from koelectra_classifier import predict
 from similarity import get_top_articles
 from source_verifier import verify
+from backend.database.connection import get_connection
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,6 +73,38 @@ async def analyze(request: AnalyzeRequest):
     )
 
     logger.info(f"[main] 분석 완료 → final_score={final_score}")
+    
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    sql = """
+    INSERT INTO news_analysis
+    (
+        content,
+        prediction,
+        confidence
+    )
+    VALUES
+    (
+        %s,
+        %s,
+        %s
+    )
+    """
+
+    cursor.execute(
+        sql,
+        (
+            text,
+            label,
+            final_score
+        )
+    )
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
 
     return AnalyzeResponse(
         exaggeration=exaggeration,
